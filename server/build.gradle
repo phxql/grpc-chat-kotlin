@@ -1,3 +1,7 @@
+apply plugin: 'application'
+
+mainClassName = 'de.mkammerer.grpcchat.server.ServerKt'
+
 dependencies {
     compile project(':protocol')
 }
