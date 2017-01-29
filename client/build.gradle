@@ -4,4 +4,5 @@ mainClassName = 'de.mkammerer.grpcchat.client.ClientKt'
 
 dependencies {
     compile project(':protocol')
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.9'
 }

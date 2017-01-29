@@ -22,6 +22,7 @@ allprojects {
         compile "io.grpc:grpc-netty:${grpcVersion}"
         compile "io.grpc:grpc-protobuf:${grpcVersion}"
         compile "io.grpc:grpc-stub:${grpcVersion}"
+        compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.22'
     }
     repositories {
         mavenCentral()

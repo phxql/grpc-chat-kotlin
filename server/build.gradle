@@ -4,4 +4,6 @@ mainClassName = 'de.mkammerer.grpcchat.server.ServerKt'
 
 dependencies {
     compile project(':protocol')
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.9'
+    compile group: 'com.google.guava', name: 'guava', version: '21.0'
 }
