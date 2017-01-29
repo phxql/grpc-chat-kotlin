@@ -20,11 +20,9 @@ object Server {
         val chat = Chat(userService, roomService)
 
         val server = ServerBuilder.forPort(PORT).addService(chat).build().start()
-        Runtime.getRuntime().addShutdownHook(object : Thread() {
-            override fun run() {
-                server.shutdown()
-            }
-        })
+        Runtime.getRuntime().addShutdownHook(Thread({
+            server.shutdown()
+        }))
         logger.info("Server running on port $PORT")
         server.awaitTermination()
     }
