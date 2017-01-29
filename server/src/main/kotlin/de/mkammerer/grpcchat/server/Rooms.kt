@@ -1,7 +1,7 @@
 package de.mkammerer.grpcchat.server
 
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CopyOnWriteArraySet
 
 data class Room(val name: String)
 
@@ -9,33 +9,40 @@ class RoomAlreadyExistsException(name: String) : Exception("Room '$name' already
 class RoomNotFoundException(name: String) : Exception("Room '$name' not found")
 
 interface RoomService {
-    fun create(name: String): Room
+    fun create(user: User, name: String): Room
 
     fun exists(name: String): Boolean
 
     fun join(user: User, room: Room)
 
-    fun all(): List<Room>
+    fun all(): Set<Room>
+
+    /**
+     * Lists all rooms where [user] is in.
+     */
+    fun listUserRooms(user: User): Set<Room>
 }
 
 object InMemoryRoomService : RoomService {
     private val rooms = ConcurrentHashMap<String, Room>()
 
-    private val members = ConcurrentHashMap<Room, MutableList<User>>()
+    private val members = ConcurrentHashMap<Room, MutableSet<User>>()
 
     override fun join(user: User, room: Room) {
-        members.getOrPut(room, { CopyOnWriteArrayList<User>() }).add(user)
+        members.getOrPut(room, { CopyOnWriteArraySet<User>() }).add(user)
     }
 
-    override fun all(): List<Room> {
-        return rooms.values.toList()
+    override fun all(): Set<Room> {
+        return rooms.values.toSet()
     }
 
-    override fun create(name: String): Room {
+    override fun create(user: User, name: String): Room {
         if (exists(name)) throw RoomAlreadyExistsException(name)
 
         val room = Room(name)
         rooms.put(room.name, room)
+
+        join(user, room)
         return room
     }
 
@@ -43,4 +50,7 @@ object InMemoryRoomService : RoomService {
         return rooms.containsKey(name)
     }
 
+    override fun listUserRooms(user: User): Set<Room> {
+        return members.filterValues { it.contains(user) }.keys
+    }
 }

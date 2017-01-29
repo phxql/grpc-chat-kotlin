@@ -73,7 +73,7 @@ class Chat(
             CreateRoomResponse.newBuilder().setError(error(Codes.INVALID_TOKEN, "Invalid token")).setCreated(false).build()
         } else {
             try {
-                val room = roomService.create(request.name)
+                val room = roomService.create(user, request.name)
                 CreateRoomResponse.newBuilder().setCreated(true).build()
             } catch(ex: RoomAlreadyExistsException) {
                 CreateRoomResponse.newBuilder().setCreated(false).setError(error(CreateRoomCodes.ROOM_ALREADY_EXISTS, "Room already exists")).build()
