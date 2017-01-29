@@ -11,6 +11,13 @@ service Chat {
     }
     rpc Login (LoginRequest) returns (LoginResponse) {
     }
+    rpc CreateRoom (CreateRoomRequest) returns (CreateRoomResponse) {
+    }
+}
+
+message Error {
+    int32 code = 1;
+    string message = 2;
 }
 
 message RegisterRequest {
@@ -19,9 +26,9 @@ message RegisterRequest {
 }
 
 message RegisterResponse {
-    bool registered = 1;
+    Error error = 1;
+    bool registered = 2;
 }
-
 
 message LoginRequest {
     string username = 1;
@@ -29,6 +36,17 @@ message LoginRequest {
 }
 
 message LoginResponse {
-    bool logged_in = 1;
-    string token = 2;
+    Error error = 1;
+    bool logged_in = 2;
+    string token = 3;
+}
+
+message CreateRoomRequest {
+    string token = 1;
+    string name = 2;
+}
+
+message CreateRoomResponse {
+    Error error = 1;
+    bool created = 2;
 }

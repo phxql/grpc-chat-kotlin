@@ -1,11 +1,9 @@
 package de.mkammerer.grpcchat.server
 
-import com.google.common.cache.CacheBuilder
 import de.mkammerer.grpcchat.protocol.*
 import io.grpc.ServerBuilder
 import io.grpc.stub.StreamObserver
 import org.slf4j.LoggerFactory
-import java.util.concurrent.TimeUnit
 
 fun main(args: Array<String>) {
     Server.start()
@@ -16,9 +14,10 @@ object Server {
     private val logger = LoggerFactory.getLogger(javaClass)
 
     fun start() {
-        val userService = InMemoryUserService
         val tokenGenerator = TokenGeneratorImpl
-        val chat = Chat(userService, tokenGenerator)
+        val userService = InMemoryUserService(tokenGenerator)
+        val roomService = InMemoryRoomService
+        val chat = Chat(userService, roomService)
 
         val server = ServerBuilder.forPort(PORT).addService(chat).build().start()
         Runtime.getRuntime().addShutdownHook(object : Thread() {
@@ -33,38 +32,55 @@ object Server {
 
 class Chat(
         private val userService: UserService,
-        private val tokenGenerator: TokenGenerator
+        private val roomService: RoomService
 ) : ChatGrpc.ChatImplBase() {
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    private val users = CacheBuilder.newBuilder().expireAfterAccess(10, TimeUnit.MINUTES).build<String, User>()
+    private fun error(code: Int, message: String): Error {
+        return Error.newBuilder().setCode(code).setMessage(message).build()
+    }
+
+    override fun login(request: LoginRequest, responseObserver: StreamObserver<LoginResponse>) {
+        val token = userService.login(request.username, request.password)
+        val response = if (token != null) {
+            logger.info("User ${request.username} logged in. Access token is $token")
+            LoginResponse.newBuilder().setLoggedIn(true).setToken(token.data).build()
+        } else {
+            LoginResponse.newBuilder().setLoggedIn(false).setError(error(LoginCodes.INVALID_CREDENTIALS, "Invalid credentials")).build()
+        }
+
+        responseObserver.onNext(response)
+        responseObserver.onCompleted()
+    }
 
     override fun register(request: RegisterRequest, responseObserver: StreamObserver<RegisterResponse>) {
-        val reply = try {
+        val response = try {
             val user = userService.register(request.username, request.password)
             logger.info("User ${user.username} registered")
             RegisterResponse.newBuilder().setRegistered(true).build()
         } catch (ex: UserAlreadyExistsException) {
-            RegisterResponse.newBuilder().setRegistered(false).build()
+            RegisterResponse.newBuilder().setRegistered(false).setError(error(RegisterCodes.USERNAME_ALREADY_EXISTS, "Username already exists")).build()
         }
 
-        responseObserver.onNext(reply)
+        responseObserver.onNext(response)
         responseObserver.onCompleted()
     }
 
-    override fun login(request: LoginRequest, responseObserver: StreamObserver<LoginResponse>) {
-        val user = userService.login(request.username, request.password)
-        val reply = if (user != null) {
-            val token = tokenGenerator.create()
-            users.put(token, user)
+    override fun createRoom(request: CreateRoomRequest, responseObserver: StreamObserver<CreateRoomResponse>) {
+        val user = userService.validateToken(Token(request.token))
 
-            logger.info("User ${user.username} logged in. Access token is $token")
-            LoginResponse.newBuilder().setLoggedIn(true).setToken(token).build()
+        val response = if (user == null) {
+            CreateRoomResponse.newBuilder().setError(error(Codes.INVALID_TOKEN, "Invalid token")).setCreated(false).build()
         } else {
-            LoginResponse.newBuilder().setLoggedIn(false).build()
+            try {
+                val room = roomService.create(request.name)
+                CreateRoomResponse.newBuilder().setCreated(true).build()
+            } catch(ex: RoomAlreadyExistsException) {
+                CreateRoomResponse.newBuilder().setCreated(false).setError(error(CreateRoomCodes.ROOM_ALREADY_EXISTS, "Room already exists")).build()
+            }
         }
 
-        responseObserver.onNext(reply)
+        responseObserver.onNext(response)
         responseObserver.onCompleted()
     }
 }
