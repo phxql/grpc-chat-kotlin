@@ -23,7 +23,7 @@ object Server {
         Runtime.getRuntime().addShutdownHook(Thread({
             server.shutdown()
         }))
-        logger.info("Server running on port $PORT")
+        logger.info("Server running on port {}", PORT)
         server.awaitTermination()
     }
 }
@@ -41,7 +41,7 @@ class Chat(
     override fun login(request: LoginRequest, responseObserver: StreamObserver<LoginResponse>) {
         val token = userService.login(request.username, request.password)
         val response = if (token != null) {
-            logger.info("User ${request.username} logged in. Access token is $token")
+            logger.info("User {} logged in. Access token is {}", request.username, token)
             LoginResponse.newBuilder().setLoggedIn(true).setToken(token.data).build()
         } else {
             LoginResponse.newBuilder().setLoggedIn(false).setError(error(LoginCodes.INVALID_CREDENTIALS, "Invalid credentials")).build()
@@ -54,7 +54,7 @@ class Chat(
     override fun register(request: RegisterRequest, responseObserver: StreamObserver<RegisterResponse>) {
         val response = try {
             val user = userService.register(request.username, request.password)
-            logger.info("User ${user.username} registered")
+            logger.info("User {} registered", user.username)
             RegisterResponse.newBuilder().setRegistered(true).build()
         } catch (ex: UserAlreadyExistsException) {
             RegisterResponse.newBuilder().setRegistered(false).setError(error(RegisterCodes.USERNAME_ALREADY_EXISTS, "Username already exists")).build()
