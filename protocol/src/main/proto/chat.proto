@@ -13,6 +13,8 @@ service Chat {
     }
     rpc CreateRoom (CreateRoomRequest) returns (CreateRoomResponse) {
     }
+    rpc ListRooms (ListRoomsRequest) returns (ListRoomsResponse) {
+    }
 }
 
 message Error {
@@ -49,4 +51,13 @@ message CreateRoomRequest {
 message CreateRoomResponse {
     Error error = 1;
     bool created = 2;
+}
+
+message ListRoomsRequest {
+    string token = 1;
+}
+
+message ListRoomsResponse {
+    Error error = 1;
+    repeated string rooms = 2;
 }

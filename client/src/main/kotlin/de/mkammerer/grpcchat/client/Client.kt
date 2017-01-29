@@ -1,9 +1,6 @@
 package de.mkammerer.grpcchat.client
 
-import de.mkammerer.grpcchat.protocol.ChatGrpc
-import de.mkammerer.grpcchat.protocol.CreateRoomRequest
-import de.mkammerer.grpcchat.protocol.LoginRequest
-import de.mkammerer.grpcchat.protocol.RegisterRequest
+import de.mkammerer.grpcchat.protocol.*
 import io.grpc.ManagedChannelBuilder
 import org.slf4j.LoggerFactory
 
@@ -32,6 +29,7 @@ class Client(private val username: String, private val password: String) {
         register()
         login()
         createRoom()
+        listRooms()
     }
 
     private fun createRoom() {
@@ -67,6 +65,20 @@ class Client(private val username: String, private val password: String) {
             logger.info("Login successful, token is $token")
         } else {
             logger.info("Login failed, error: {}", response.error)
+        }
+    }
+
+    private fun listRooms() {
+        if (token == null) throw TokenMissingException()
+
+        val request = ListRoomsRequest.newBuilder().setToken(token).build()
+        val response = connector.listRooms(request)
+
+        if (response.error.code == Codes.SUCCESS) {
+            logger.info("Rooms on server:")
+            response.roomsList.forEach { it -> logger.info(it) }
+        } else {
+            logger.info("List rooms failed, error: {}", response.error)
         }
     }
 }

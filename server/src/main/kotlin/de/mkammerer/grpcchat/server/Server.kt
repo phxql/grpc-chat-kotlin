@@ -83,4 +83,19 @@ class Chat(
         responseObserver.onNext(response)
         responseObserver.onCompleted()
     }
+
+    override fun listRooms(request: ListRoomsRequest, responseObserver: StreamObserver<ListRoomsResponse>) {
+        val user = userService.validateToken(Token(request.token))
+
+        val response = if (user == null) {
+            ListRoomsResponse.newBuilder().setError(error(Codes.INVALID_TOKEN, "Invalid token")).build()
+        } else {
+            val rooms = roomService.all()
+            ListRoomsResponse.newBuilder().addAllRooms(rooms.map(Room::name)).build()
+
+        }
+
+        responseObserver.onNext(response)
+        responseObserver.onCompleted()
+    }
 }
