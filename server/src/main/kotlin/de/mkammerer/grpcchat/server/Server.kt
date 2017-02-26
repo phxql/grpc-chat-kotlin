@@ -17,20 +17,32 @@ object Server {
         val tokenGenerator = TokenGeneratorImpl
         val userService = InMemoryUserService(tokenGenerator)
         val roomService = InMemoryRoomService
-        val chat = Chat(userService, roomService)
+        val messageService = InMemoryMessageService(WallClock)
+        val chat = Chat(userService, roomService, messageService)
 
         val server = ServerBuilder.forPort(PORT).addService(chat).build().start()
         Runtime.getRuntime().addShutdownHook(Thread({
             server.shutdown()
         }))
         logger.info("Server running on port {}", PORT)
+
+//        Thread({
+//            var i = 0
+//            while(true) {
+//                messageService.send(Room("Dummy"), User("Admin", "Admin"), "Message #$i")
+//                Thread.sleep(2000)
+//                i++
+//            }
+//        }).start()
+//
         server.awaitTermination()
     }
 }
 
 class Chat(
         private val userService: UserService,
-        private val roomService: RoomService
+        private val roomService: RoomService,
+        private val messageService: MessageService
 ) : ChatGrpc.ChatImplBase() {
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -158,6 +170,49 @@ class Chat(
             val rooms = roomService.listUserRooms(user)
             ListRoomsResponse.newBuilder().addAllRooms(rooms.map(Room::name)).build()
 
+        }
+
+        responseObserver.onNext(response)
+        responseObserver.onCompleted()
+    }
+
+    override fun getMessages(request: GetMessagesRequest, responseObserver: StreamObserver<GetMessagesResponse>) {
+        val user = userService.validateToken(Token(request.token))
+
+        if (user == null) {
+            val response = GetMessagesResponse.newBuilder().setError(error(Codes.INVALID_TOKEN, "Invalid token")).build()
+            responseObserver.onNext(response)
+            responseObserver.onCompleted()
+        } else {
+            logger.info("Registering user {} for messages", user.username)
+            messageService.register { message ->
+                val response = GetMessagesResponse.newBuilder()
+                        .setFrom(message.user.username)
+                        .setRoom(message.room.name)
+                        .setText(message.text)
+                        .setTimestamp(message.timestamp.toEpochMilli())
+                        .build()
+                responseObserver.onNext(response)
+            }
+        }
+    }
+
+    override fun sendMessage(request: SendMessageRequest, responseObserver: StreamObserver<SendMessageResponse>) {
+        val user = userService.validateToken(Token(request.token))
+
+        val response = if (user == null) {
+            SendMessageResponse.newBuilder().setError(error(Codes.INVALID_TOKEN, "Invalid token")).build()
+        } else {
+            val rooms = roomService.listUserRooms(user)
+
+            // Check if already in room
+            val room = rooms.find { r -> r.name == request.room }
+            if (room == null) {
+                SendMessageResponse.newBuilder().setError(error(SendMessageCodes.NOT_IN_ROOM, "Not in room")).setSent(false).build()
+            } else {
+                messageService.send(room, user, request.text)
+                SendMessageResponse.newBuilder().setSent(true).build()
+            }
         }
 
         responseObserver.onNext(response)

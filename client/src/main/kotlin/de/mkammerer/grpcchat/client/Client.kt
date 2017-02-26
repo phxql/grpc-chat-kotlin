@@ -2,7 +2,9 @@ package de.mkammerer.grpcchat.client
 
 import de.mkammerer.grpcchat.protocol.*
 import io.grpc.ManagedChannelBuilder
+import io.grpc.stub.StreamObserver
 import org.slf4j.LoggerFactory
+import java.time.Instant
 
 const val USERNAME = "moe"
 const val PASSWORD = "eomeom"
@@ -16,6 +18,7 @@ class TokenMissingException : Exception("Token is missing. Call login() first")
 class Client(private val username: String, private val password: String) {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val connector: ChatGrpc.ChatBlockingStub
+    private val asyncConnector: ChatGrpc.ChatStub
     private var token: String? = null
 
     init {
@@ -23,6 +26,7 @@ class Client(private val username: String, private val password: String) {
                 .usePlaintext(true)
                 .build()
         connector = ChatGrpc.newBlockingStub(channel)
+        asyncConnector = ChatGrpc.newStub(channel)
     }
 
     fun start() {
@@ -37,6 +41,52 @@ class Client(private val username: String, private val password: String) {
         leaveRoom("Room #1")
         listRooms()
         listUserRooms()
+
+        getMessages()
+
+        Thread.sleep(500)
+
+        sendMessage("Room #2", "Hello")
+
+        Thread.sleep(Long.MAX_VALUE)
+    }
+
+    private fun getMessages() {
+        if (token == null) throw TokenMissingException()
+
+        val request = GetMessagesRequest.newBuilder().setToken(token).build()
+        logger.info("Receiving messages ...")
+        asyncConnector.getMessages(request, object : StreamObserver<GetMessagesResponse> {
+            override fun onCompleted() {
+                logger.info("No more messages")
+            }
+
+            override fun onError(t: Throwable) {
+                logger.error("Error receiving messages: {}", t.message)
+            }
+
+            override fun onNext(value: GetMessagesResponse) {
+                if (value.error != null) {
+                    logger.info("Receiving messages failed, error: {}", value.error)
+                } else {
+                    val sent = Instant.ofEpochMilli(value.timestamp)
+                    logger.info("Message in room {} from {}, sent {}: {}", value.room, value.from, sent, value.text)
+                }
+            }
+        })
+    }
+
+    private fun sendMessage(room: String, text: String) {
+        if (token == null) throw TokenMissingException()
+
+        val request = SendMessageRequest.newBuilder().setToken(token).setRoom(room).setText(text).build()
+        val response = connector.sendMessage(request)
+
+        if (response.sent) {
+            logger.info("Message sent")
+        } else {
+            logger.info("Send message failed, error: {}", response.error)
+        }
     }
 
     private fun leaveRoom(name: String) {
@@ -48,7 +98,7 @@ class Client(private val username: String, private val password: String) {
         if (response.left) {
             logger.info("Room left")
         } else {
-            logger.info("Room leave failed, error: {}", response.error)
+            logger.info("Leave room failed, error: {}", response.error)
         }
     }
 

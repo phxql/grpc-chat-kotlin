@@ -25,3 +25,7 @@ object LeaveRoomCodes {
     const val NOT_IN_ROOM = 1
     const val ROOM_DOESNT_EXIST = 2
 }
+
+object SendMessageCodes {
+    const val NOT_IN_ROOM = 1
+}

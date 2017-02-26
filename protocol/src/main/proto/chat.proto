@@ -23,6 +23,8 @@ service Chat {
     }
     rpc SendMessage (SendMessageRequest) returns (SendMessageResponse) {
     }
+    rpc GetMessages (GetMessagesRequest) returns (stream GetMessagesResponse) {
+    }
 }
 
 message Error {
@@ -93,10 +95,22 @@ message LeaveRoomResponse {
 message SendMessageRequest {
     string token = 1;
     string room = 2;
-    string message = 3;
+    string text = 3;
 }
 
 message SendMessageResponse {
     Error error = 1;
     bool sent = 2;
+}
+
+message GetMessagesRequest {
+    string token = 1;
+}
+
+message GetMessagesResponse {
+    Error error = 1;
+    string room = 2;
+    string from = 3;
+    string text = 4;
+    int64 timestamp = 5;
 }
