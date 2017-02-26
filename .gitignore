@@ -1,6 +1,6 @@
 # IntelliJ
 .idea/
-*.iml
+classes/
 
 # Gradle
 build/
