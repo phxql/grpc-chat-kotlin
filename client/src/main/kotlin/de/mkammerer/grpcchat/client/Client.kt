@@ -28,14 +28,34 @@ class Client(private val username: String, private val password: String) {
     fun start() {
         register()
         login()
-        createRoom()
+        createRoom("Room #1")
         listRooms()
+        listUserRooms()
+        createRoom("Room #2")
+        listRooms()
+        listUserRooms()
+        leaveRoom("Room #1")
+        listRooms()
+        listUserRooms()
     }
 
-    private fun createRoom() {
+    private fun leaveRoom(name: String) {
         if (token == null) throw TokenMissingException()
 
-        val request = CreateRoomRequest.newBuilder().setToken(token).setName("Room #1").build()
+        val request = LeaveRoomRequest.newBuilder().setToken(token).setName(name).build()
+        val response = connector.leaveRoom(request)
+
+        if (response.left) {
+            logger.info("Room left")
+        } else {
+            logger.info("Room leave failed, error: {}", response.error)
+        }
+    }
+
+    private fun createRoom(name: String) {
+        if (token == null) throw TokenMissingException()
+
+        val request = CreateRoomRequest.newBuilder().setToken(token).setName(name).build()
         val response = connector.createRoom(request)
 
         if (response.created) {
@@ -79,6 +99,20 @@ class Client(private val username: String, private val password: String) {
             response.roomsList.forEach { it -> logger.info(it) }
         } else {
             logger.info("List rooms failed, error: {}", response.error)
+        }
+    }
+
+    private fun listUserRooms() {
+        if (token == null) throw TokenMissingException()
+
+        val request = ListRoomsRequest.newBuilder().setToken(token).build()
+        val response = connector.listUserRooms(request)
+
+        if (response.error.code == Codes.SUCCESS) {
+            logger.info("Rooms:")
+            response.roomsList.forEach { it -> logger.info(it) }
+        } else {
+            logger.info("List user rooms failed, error: {}", response.error)
         }
     }
 }

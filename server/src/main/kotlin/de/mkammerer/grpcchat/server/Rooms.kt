@@ -15,7 +15,11 @@ interface RoomService {
 
     fun join(user: User, room: Room)
 
+    fun leave(user: User, room: Room)
+
     fun all(): Set<Room>
+
+    fun find(name: String): Room?
 
     /**
      * Lists all rooms where [user] is in.
@@ -32,8 +36,16 @@ object InMemoryRoomService : RoomService {
         members.getOrPut(room, { CopyOnWriteArraySet<User>() }).add(user)
     }
 
+    override fun leave(user: User, room: Room) {
+        members.getOrDefault(room, mutableSetOf()).remove(user)
+    }
+
     override fun all(): Set<Room> {
         return rooms.values.toSet()
+    }
+
+    override fun find(name: String): Room? {
+        return rooms[name]
     }
 
     override fun create(user: User, name: String): Room {

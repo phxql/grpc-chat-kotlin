@@ -71,10 +71,62 @@ class Chat(
             CreateRoomResponse.newBuilder().setError(error(Codes.INVALID_TOKEN, "Invalid token")).setCreated(false).build()
         } else {
             try {
-                val room = roomService.create(user, request.name)
+                roomService.create(user, request.name)
                 CreateRoomResponse.newBuilder().setCreated(true).build()
             } catch(ex: RoomAlreadyExistsException) {
                 CreateRoomResponse.newBuilder().setCreated(false).setError(error(CreateRoomCodes.ROOM_ALREADY_EXISTS, "Room already exists")).build()
+            }
+        }
+
+        responseObserver.onNext(response)
+        responseObserver.onCompleted()
+    }
+
+    override fun joinRoom(request: JoinRoomRequest, responseObserver: StreamObserver<JoinRoomResponse>) {
+        val user = userService.validateToken(Token(request.token))
+
+        val response = if (user == null) {
+            JoinRoomResponse.newBuilder().setError(error(Codes.INVALID_TOKEN, "Invalid token")).setJoined(false).build()
+        } else {
+            val userRooms = roomService.listUserRooms(user)
+            // Check if already in room
+            if (userRooms.any { r -> r.name == request.name }) {
+                JoinRoomResponse.newBuilder().setError(error(JoinRoomCodes.ALREADY_IN_ROOM, "Already in room")).setJoined(false).build()
+            } else {
+                val room = roomService.find(request.name)
+                // Check if room exists
+                if (room == null) {
+                    JoinRoomResponse.newBuilder().setError(error(JoinRoomCodes.ROOM_DOESNT_EXIST, "Room doesn't exist")).setJoined(false).build()
+                } else {
+                    roomService.join(user, room)
+                    JoinRoomResponse.newBuilder().setJoined(true).build()
+                }
+            }
+        }
+
+        responseObserver.onNext(response)
+        responseObserver.onCompleted()
+    }
+
+    override fun leaveRoom(request: LeaveRoomRequest, responseObserver: StreamObserver<LeaveRoomResponse>) {
+        val user = userService.validateToken(Token(request.token))
+
+        val response = if (user == null) {
+            LeaveRoomResponse.newBuilder().setError(error(Codes.INVALID_TOKEN, "Invalid token")).setLeft(false).build()
+        } else {
+            val userRooms = roomService.listUserRooms(user)
+            // Check if already in room
+            if (userRooms.none { r -> r.name == request.name }) {
+                LeaveRoomResponse.newBuilder().setError(error(LeaveRoomCodes.NOT_IN_ROOM, "Not in room")).setLeft(false).build()
+            } else {
+                val room = roomService.find(request.name)
+                // Check if room exists
+                if (room == null) {
+                    LeaveRoomResponse.newBuilder().setError(error(LeaveRoomCodes.ROOM_DOESNT_EXIST, "Room doesn't exist")).setLeft(false).build()
+                } else {
+                    roomService.leave(user, room)
+                    LeaveRoomResponse.newBuilder().setLeft(true).build()
+                }
             }
         }
 
@@ -89,6 +141,21 @@ class Chat(
             ListRoomsResponse.newBuilder().setError(error(Codes.INVALID_TOKEN, "Invalid token")).build()
         } else {
             val rooms = roomService.all()
+            ListRoomsResponse.newBuilder().addAllRooms(rooms.map(Room::name)).build()
+
+        }
+
+        responseObserver.onNext(response)
+        responseObserver.onCompleted()
+    }
+
+    override fun listUserRooms(request: ListRoomsRequest, responseObserver: StreamObserver<ListRoomsResponse>) {
+        val user = userService.validateToken(Token(request.token))
+
+        val response = if (user == null) {
+            ListRoomsResponse.newBuilder().setError(error(Codes.INVALID_TOKEN, "Invalid token")).build()
+        } else {
+            val rooms = roomService.listUserRooms(user)
             ListRoomsResponse.newBuilder().addAllRooms(rooms.map(Room::name)).build()
 
         }

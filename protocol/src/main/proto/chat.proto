@@ -15,6 +15,14 @@ service Chat {
     }
     rpc ListRooms (ListRoomsRequest) returns (ListRoomsResponse) {
     }
+    rpc ListUserRooms (ListRoomsRequest) returns (ListRoomsResponse) {
+    }
+    rpc JoinRoom (JoinRoomRequest) returns (JoinRoomResponse) {
+    }
+    rpc LeaveRoom (LeaveRoomRequest) returns (LeaveRoomResponse) {
+    }
+    rpc SendMessage (SendMessageRequest) returns (SendMessageResponse) {
+    }
 }
 
 message Error {
@@ -60,4 +68,35 @@ message ListRoomsRequest {
 message ListRoomsResponse {
     Error error = 1;
     repeated string rooms = 2;
+}
+
+message JoinRoomRequest {
+    string token = 1;
+    string name = 2;
+}
+
+message JoinRoomResponse {
+    Error error = 1;
+    bool joined = 2;
+}
+
+message LeaveRoomRequest {
+    string token = 1;
+    string name = 2;
+}
+
+message LeaveRoomResponse {
+    Error error = 1;
+    bool left = 2;
+}
+
+message SendMessageRequest {
+    string token = 1;
+    string room = 2;
+    string message = 3;
+}
+
+message SendMessageResponse {
+    Error error = 1;
+    bool sent = 2;
 }
