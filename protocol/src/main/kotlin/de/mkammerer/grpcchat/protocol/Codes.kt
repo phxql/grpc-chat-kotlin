@@ -1,6 +1,7 @@
-package de.mkammerer.grpcchat.server
+package de.mkammerer.grpcchat.protocol
 
 object Codes {
+    const val SUCCESS = 0
     const val INVALID_TOKEN = 999
 }
 
