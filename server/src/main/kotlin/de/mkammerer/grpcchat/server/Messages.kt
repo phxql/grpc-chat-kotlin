@@ -4,17 +4,38 @@ import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 
+/**
+ * A message.
+ */
 data class Message(val timestamp: Instant, val room: Room, val user: User, val text: String)
 
+/**
+ * A subscription.
+ */
 interface Subscription {
+    /**
+     * Cancels the subscription.
+     */
     fun cancel()
 }
 
+/**
+ * Handles messages.
+ */
 interface MessageService {
+    /**
+     * Registers the given [user] for messages. The [callback] is called each time a new message arrives.
+     */
     fun register(user: User, callback: (Message) -> Unit): Subscription
 
+    /**
+     * Unregisters the given [user] from the message stream.
+     */
     fun unregister(user: User)
 
+    /**
+     * Sends the given [text] from the given [user] to the given [room].
+     */
     fun send(room: Room, user: User, text: String)
 }
 

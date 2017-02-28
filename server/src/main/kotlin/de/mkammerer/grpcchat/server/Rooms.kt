@@ -3,22 +3,48 @@ package de.mkammerer.grpcchat.server
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArraySet
 
+/**
+ * A room.
+ */
 data class Room(val name: String)
 
+/**
+ * Is thrown if a room already exists.
+ */
 class RoomAlreadyExistsException(name: String) : Exception("Room '$name' already exist")
-class RoomNotFoundException(name: String) : Exception("Room '$name' not found")
 
+/**
+ * Manages rooms.
+ */
 interface RoomService {
+    /**
+     * Creates a new room with the given [name] and the given [user] as owner.
+     */
     fun create(user: User, name: String): Room
 
+    /**
+     * Determines if the room with the given [name] exists.
+     */
     fun exists(name: String): Boolean
 
+    /**
+     * Joins the given [room] with the given [user].
+     */
     fun join(user: User, room: Room)
 
+    /**
+     * Leaves the given [room] with the given [user].
+     */
     fun leave(user: User, room: Room)
 
+    /**
+     * Lists all rooms.
+     */
     fun all(): Set<Room>
 
+    /**
+     * Finds the room with the given [name].
+     */
     fun find(name: String): Room?
 
     /**
@@ -26,6 +52,9 @@ interface RoomService {
      */
     fun listUserRooms(user: User): Set<Room>
 
+    /**
+     * Lists users in the given [room].
+     */
     fun listUsers(room: Room): Set<User>
 }
 

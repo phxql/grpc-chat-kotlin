@@ -3,7 +3,13 @@ package de.mkammerer.grpcchat.server
 import java.security.SecureRandom
 import java.util.*
 
+/**
+ * Generates tokens.
+ */
 interface TokenGenerator {
+    /**
+     * Generates a new token.
+     */
     fun create(): String
 }
 
