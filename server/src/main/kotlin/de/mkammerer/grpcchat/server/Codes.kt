@@ -29,3 +29,7 @@ object LeaveRoomCodes {
 object SendMessageCodes {
     const val NOT_IN_ROOM = 1
 }
+
+object ListUsersInRoomCodes {
+    const val ROOM_DOESNT_EXIST = 1
+}

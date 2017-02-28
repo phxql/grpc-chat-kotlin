@@ -211,4 +211,23 @@ class Chat(
         responseObserver.onNext(response)
         responseObserver.onCompleted()
     }
+
+    override fun listUsersInRoom(request: ListUsersInRoomRequest, responseObserver: StreamObserver<ListUsersInRoomResponse>) {
+        val user = userService.validateToken(Token(request.token))
+
+        val response = if (user == null) {
+            ListUsersInRoomResponse.newBuilder().setError(error(Codes.INVALID_TOKEN, "Invalid token")).build()
+        } else {
+            val room = roomService.find(request.name)
+
+            if (room == null) {
+                ListUsersInRoomResponse.newBuilder().setError(error(ListUsersInRoomCodes.ROOM_DOESNT_EXIST, "Room doens't exist")).build()
+            } else {
+                val users = roomService.listUsers(room)
+                ListUsersInRoomResponse.newBuilder().addAllUsers(users.map(User::username)).build()
+            }
+        }
+        responseObserver.onNext(response)
+        responseObserver.onCompleted()
+    }
 }

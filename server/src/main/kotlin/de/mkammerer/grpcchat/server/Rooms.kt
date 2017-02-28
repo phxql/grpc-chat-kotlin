@@ -25,6 +25,8 @@ interface RoomService {
      * Lists all rooms where [user] is in.
      */
     fun listUserRooms(user: User): Set<Room>
+
+    fun listUsers(room: Room): Set<User>
 }
 
 object InMemoryRoomService : RoomService {
@@ -64,5 +66,9 @@ object InMemoryRoomService : RoomService {
 
     override fun listUserRooms(user: User): Set<Room> {
         return members.filterValues { it.contains(user) }.keys
+    }
+
+    override fun listUsers(room: Room): Set<User> {
+        return members[room] ?: setOf()
     }
 }

@@ -25,6 +25,8 @@ service Chat {
     }
     rpc GetMessages (GetMessagesRequest) returns (stream GetMessagesResponse) {
     }
+    rpc ListUsersInRoom (ListUsersInRoomRequest) returns (ListUsersInRoomResponse) {
+    }
 }
 
 message Error {
@@ -113,4 +115,14 @@ message GetMessagesResponse {
     string from = 3;
     string text = 4;
     int64 timestamp = 5;
+}
+
+message ListUsersInRoomRequest {
+    string token = 1;
+    string name = 2;
+}
+
+message ListUsersInRoomResponse {
+    Error error = 1;
+    repeated string users = 2;
 }
