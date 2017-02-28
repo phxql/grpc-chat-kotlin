@@ -176,13 +176,16 @@ class Chat(
         } else {
             logger.info("Registering user {} for messages", user.username)
             messageService.register(user) { message ->
-                val response = GetMessagesResponse.newBuilder()
-                        .setFrom(message.user.username)
-                        .setRoom(message.room.name)
-                        .setText(message.text)
-                        .setTimestamp(message.timestamp.toEpochMilli())
-                        .build()
-                responseObserver.onNext(response)
+                // Only distribute message if user is in room and some other user sent the message
+                if (roomService.listUserRooms(user).contains(message.room) && user != message.user) {
+                    val response = GetMessagesResponse.newBuilder()
+                            .setFrom(message.user.username)
+                            .setRoom(message.room.name)
+                            .setText(message.text)
+                            .setTimestamp(message.timestamp.toEpochMilli())
+                            .build()
+                    responseObserver.onNext(response)
+                }
             }
         }
     }
