@@ -6,11 +6,8 @@ import io.grpc.stub.StreamObserver
 import org.slf4j.LoggerFactory
 import java.time.Instant
 
-const val USERNAME = "moe"
-const val PASSWORD = "eomeom"
-
 fun main(args: Array<String>) {
-    Client(USERNAME, PASSWORD).start()
+    Client(args[0], args[0]).start()
 }
 
 class TokenMissingException : Exception("Token is missing. Call login() first")
@@ -46,9 +43,31 @@ class Client(private val username: String, private val password: String) {
 
         Thread.sleep(500)
 
-        sendMessage("Room #2", "Hello")
+        joinRoom("Room #2")
+
+        Thread({
+            var i = 0
+            while (true) {
+                i++
+                sendMessage("Room #2", "Message #$i")
+                Thread.sleep(2000)
+            }
+        }, "Message sender").start()
 
         Thread.sleep(Long.MAX_VALUE)
+    }
+
+    private fun joinRoom(name: String) {
+        if (token == null) throw TokenMissingException()
+
+        val request = JoinRoomRequest.newBuilder().setToken(token).setName(name).build()
+        val response = connector.joinRoom(request)
+
+        if (response.joined) {
+            logger.info("Room joined")
+        } else {
+            logger.info("Join room failed, error: {}", response.error)
+        }
     }
 
     private fun getMessages() {
@@ -66,7 +85,7 @@ class Client(private val username: String, private val password: String) {
             }
 
             override fun onNext(value: GetMessagesResponse) {
-                if (value.error != null) {
+                if (value.error.code != 0) {
                     logger.info("Receiving messages failed, error: {}", value.error)
                 } else {
                     val sent = Instant.ofEpochMilli(value.timestamp)

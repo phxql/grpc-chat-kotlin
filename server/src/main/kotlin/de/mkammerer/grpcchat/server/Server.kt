@@ -25,16 +25,6 @@ object Server {
             server.shutdown()
         }))
         logger.info("Server running on port {}", PORT)
-
-//        Thread({
-//            var i = 0
-//            while(true) {
-//                messageService.send(Room("Dummy"), User("Admin", "Admin"), "Message #$i")
-//                Thread.sleep(2000)
-//                i++
-//            }
-//        }).start()
-//
         server.awaitTermination()
     }
 }
@@ -185,7 +175,7 @@ class Chat(
             responseObserver.onCompleted()
         } else {
             logger.info("Registering user {} for messages", user.username)
-            messageService.register { message ->
+            messageService.register(user) { message ->
                 val response = GetMessagesResponse.newBuilder()
                         .setFrom(message.user.username)
                         .setRoom(message.room.name)
