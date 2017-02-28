@@ -4,9 +4,13 @@ import de.mkammerer.grpcchat.protocol.*
 import io.grpc.ManagedChannelBuilder
 import org.slf4j.LoggerFactory
 import java.time.Instant
+import java.util.*
 
 fun main(args: Array<String>) {
-    Client(args[0], args[0]).start()
+    // Use the first argument as username. If no arguments are given, generate a unique username
+    val username = if (args.isEmpty()) UUID.randomUUID().toString() else args[0]
+
+    Client(username, username.reversed()).start()
 }
 
 class TokenMissingException : Exception("Token is missing. Call login() first")
