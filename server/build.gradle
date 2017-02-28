@@ -1,6 +1,7 @@
 apply plugin: 'application'
 
 mainClassName = 'de.mkammerer.grpcchat.server.ServerKt'
+applicationDefaultJvmArgs = ["-Xmx64m"]
 
 dependencies {
     compile project(':protocol')

@@ -1,6 +1,7 @@
 apply plugin: 'application'
 
 mainClassName = 'de.mkammerer.grpcchat.client.ClientKt'
+applicationDefaultJvmArgs = ["-Xmx32m"]
 
 dependencies {
     compile project(':protocol')
