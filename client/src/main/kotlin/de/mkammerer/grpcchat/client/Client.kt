@@ -33,6 +33,9 @@ class Client(private val username: String, private val password: String) {
     init {
         val channel = ManagedChannelBuilder.forAddress("localhost", 5001)
                 .usePlaintext()
+                // this will disable thread pools and execute everything on the event loop. DO NOT BLOCK in any implemented
+                // ImplBase methods!
+                .directExecutor()
                 .build()
         connector = ChatGrpc.newBlockingStub(channel)
     }

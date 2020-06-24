@@ -47,7 +47,12 @@ object Server {
         val messageService = InMemoryMessageService(WallClock)
         val chat = Chat(userService, roomService, messageService)
 
-        val server = ServerBuilder.forPort(PORT).addService(chat).build().start()
+        val server = ServerBuilder.forPort(PORT)
+                // this will disable thread pools and execute everything on the event loop. DO NOT BLOCK in any implemented
+                // ImplBase methods!
+                .directExecutor()
+                .addService(chat)
+                .build().start()
         Runtime.getRuntime().addShutdownHook(Thread {
             server.shutdown()
         })
