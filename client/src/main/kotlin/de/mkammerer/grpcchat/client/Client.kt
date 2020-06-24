@@ -183,7 +183,7 @@ class Client(private val username: String, private val password: String) {
 
         if (response.error.code == Codes.SUCCESS) {
             logger.info("Rooms on server:")
-            response.roomsList.forEach { it -> logger.info("\t{}", it) }
+            response.roomsList.forEach { logger.info("\t{}", it) }
         } else {
             logger.error("List rooms failed, error: {}", response.error)
         }
@@ -197,7 +197,7 @@ class Client(private val username: String, private val password: String) {
 
         if (response.error.code == Codes.SUCCESS) {
             logger.info("Rooms:")
-            response.roomsList.forEach { it -> logger.info("\t{}", it) }
+            response.roomsList.forEach { logger.info("\t{}", it) }
         } else {
             logger.error("List user rooms failed, error: {}", response.error)
         }

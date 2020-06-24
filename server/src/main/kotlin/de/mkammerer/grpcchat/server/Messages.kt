@@ -45,7 +45,7 @@ class InMemoryMessageService(private val clock: Clock) : MessageService {
     private val subscriber = ConcurrentHashMap<User, (Message) -> Unit>()
 
     override fun register(user: User, callback: (Message) -> Unit): Subscription {
-        subscriber.put(user, callback)
+        subscriber[user] = callback
 
         return object : Subscription {
             override fun cancel() {

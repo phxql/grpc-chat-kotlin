@@ -64,18 +64,18 @@ class InMemoryUserService(
         if (exists(username)) throw UserAlreadyExistsException(username)
 
         val user = User(username, password)
-        users.put(user.username, user)
+        users[user.username] = user
         return user
     }
 
     override fun login(username: String, password: String): Token? {
         val user = users[username] ?: return null
 
-        if (user.password == password) {
+        return if (user.password == password) {
             val token = Token(tokenGenerator.create())
             loggedIn.put(token, user)
-            return token
-        } else return null
+            token
+        } else null
     }
 
     override fun validateToken(token: Token): User? {

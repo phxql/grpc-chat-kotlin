@@ -83,7 +83,7 @@ object InMemoryRoomService : RoomService {
         if (exists(name)) throw RoomAlreadyExistsException(name)
 
         val room = Room(name)
-        rooms.put(room.name, room)
+        rooms[room.name] = room
 
         join(user, room)
         return room
