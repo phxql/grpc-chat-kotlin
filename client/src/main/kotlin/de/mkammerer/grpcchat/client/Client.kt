@@ -1,6 +1,16 @@
 package de.mkammerer.grpcchat.client
 
+import de.mkammerer.grpcchat.protocol.ChatGrpc
 import de.mkammerer.grpcchat.protocol.Codes
+import de.mkammerer.grpcchat.protocol.CreateRoomRequest
+import de.mkammerer.grpcchat.protocol.GetMessagesRequest
+import de.mkammerer.grpcchat.protocol.JoinRoomRequest
+import de.mkammerer.grpcchat.protocol.LeaveRoomRequest
+import de.mkammerer.grpcchat.protocol.ListRoomsRequest
+import de.mkammerer.grpcchat.protocol.ListUsersInRoomRequest
+import de.mkammerer.grpcchat.protocol.LoginRequest
+import de.mkammerer.grpcchat.protocol.RegisterRequest
+import de.mkammerer.grpcchat.protocol.SendMessageRequest
 import io.grpc.ManagedChannelBuilder
 import org.slf4j.LoggerFactory
 import java.time.Instant

@@ -1,11 +1,38 @@
 package de.mkammerer.grpcchat.server
 
-import de.mkammerer.grpcchat.protocol.*
+import de.mkammerer.grpcchat.protocol.ChatGrpc
+import de.mkammerer.grpcchat.protocol.Codes
+import de.mkammerer.grpcchat.protocol.CreateRoomCodes
+import de.mkammerer.grpcchat.protocol.CreateRoomRequest
+import de.mkammerer.grpcchat.protocol.CreateRoomResponse
+import de.mkammerer.grpcchat.protocol.Error
+import de.mkammerer.grpcchat.protocol.GetMessagesRequest
+import de.mkammerer.grpcchat.protocol.GetMessagesResponse
+import de.mkammerer.grpcchat.protocol.JoinRoomCodes
+import de.mkammerer.grpcchat.protocol.JoinRoomRequest
+import de.mkammerer.grpcchat.protocol.JoinRoomResponse
+import de.mkammerer.grpcchat.protocol.LeaveRoomCodes
+import de.mkammerer.grpcchat.protocol.LeaveRoomRequest
+import de.mkammerer.grpcchat.protocol.LeaveRoomResponse
+import de.mkammerer.grpcchat.protocol.ListRoomsRequest
+import de.mkammerer.grpcchat.protocol.ListRoomsResponse
+import de.mkammerer.grpcchat.protocol.ListUsersInRoomCodes
+import de.mkammerer.grpcchat.protocol.ListUsersInRoomRequest
+import de.mkammerer.grpcchat.protocol.ListUsersInRoomResponse
+import de.mkammerer.grpcchat.protocol.LoginCodes
+import de.mkammerer.grpcchat.protocol.LoginRequest
+import de.mkammerer.grpcchat.protocol.LoginResponse
+import de.mkammerer.grpcchat.protocol.RegisterCodes
+import de.mkammerer.grpcchat.protocol.RegisterRequest
+import de.mkammerer.grpcchat.protocol.RegisterResponse
+import de.mkammerer.grpcchat.protocol.SendMessageCodes
+import de.mkammerer.grpcchat.protocol.SendMessageRequest
+import de.mkammerer.grpcchat.protocol.SendMessageResponse
 import io.grpc.ServerBuilder
 import io.grpc.stub.StreamObserver
 import org.slf4j.LoggerFactory
 
-fun main(args: Array<String>) {
+fun main() {
     Server.start()
 }
 
@@ -21,9 +48,9 @@ object Server {
         val chat = Chat(userService, roomService, messageService)
 
         val server = ServerBuilder.forPort(PORT).addService(chat).build().start()
-        Runtime.getRuntime().addShutdownHook(Thread({
+        Runtime.getRuntime().addShutdownHook(Thread {
             server.shutdown()
-        }))
+        })
         logger.info("Server running on port {}", PORT)
         server.awaitTermination()
     }
