@@ -1,10 +1,10 @@
 package de.mkammerer.grpcchat.client
 
-import de.mkammerer.grpcchat.protocol.*
+import de.mkammerer.grpcchat.protocol.Codes
 import io.grpc.ManagedChannelBuilder
 import org.slf4j.LoggerFactory
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 fun main(args: Array<String>) {
     // Use the first argument as username. If no arguments are given, generate a unique username
@@ -22,7 +22,7 @@ class Client(private val username: String, private val password: String) {
 
     init {
         val channel = ManagedChannelBuilder.forAddress("localhost", 5001)
-                .usePlaintext(true)
+                .usePlaintext()
                 .build()
         connector = ChatGrpc.newBlockingStub(channel)
     }
